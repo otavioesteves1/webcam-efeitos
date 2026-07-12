@@ -1,0 +1,10 @@
+# Um pokemon por linha (pode repetir o mesmo varias vezes).
+# Depois do nome, pode colocar:
+#   - um numero de 1 a 100 = tamanho, em % da altura da tela
+#     (sem numero, fica no tamanho padrao ~13)
+#   - a palavra shiny = versao shiny
+# Exemplos:
+#   pikachu
+#   pikachu 30
+#   charizard 50 shiny
+metapod 30

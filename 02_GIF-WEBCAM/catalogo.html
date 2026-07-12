@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Pokedex do GifCam — gen1</title>
+<style>
+  body { margin:0; padding:24px; background:#1a1c2c; color:#eee;
+         font-family:"Segoe UI",sans-serif; }
+  h1 { font-size:1.3rem; margin:0 0 4px; }
+  p.dica { color:#9aa; margin:0 0 16px; font-size:.9rem; }
+  #busca { width:100%; max-width:420px; padding:10px 14px; font-size:1rem;
+           border-radius:10px; border:1px solid #444; background:#26283d;
+           color:#eee; outline:none; margin-bottom:20px; }
+  .grade { display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr));
+           gap:10px; }
+  .card { background:#26283d; border-radius:12px; padding:12px 6px 10px;
+          text-align:center; cursor:pointer; border:1px solid transparent;
+          transition:transform .08s, border-color .08s; }
+  .card:hover { transform:translateY(-3px); border-color:#ffd34d; }
+  .card img { width:64px; height:64px; image-rendering:pixelated; }
+  .num { display:block; color:#889; font-size:.72rem; margin-top:4px; }
+  .nome { display:block; font-size:.85rem; font-weight:600; word-break:break-all; }
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+           background:#ffd34d; color:#222; padding:10px 22px; border-radius:99px;
+           font-weight:700; opacity:0; pointer-events:none; transition:opacity .2s; }
+</style>
+</head>
+<body>
+<h1>Pokédex do GifCam — os 151 da gen1</h1>
+<p class="dica">Clique num pokémon pra copiar o nome, depois cole no pokemons.txt. Digite pra filtrar:</p>
+<input id="busca" type="text" placeholder="ex: pika..." autofocus>
+<div class="grade">
+<div class="card" data-nome="bulbasaur" onclick="copiar(this)"><img src="sprites/bulbasaur_default_walk.gif" alt="bulbasaur" loading="lazy"><span class="num">#001</span><span class="nome">bulbasaur</span></div>
+<div class="card" data-nome="ivysaur" onclick="copiar(this)"><img src="sprites/ivysaur_default_walk.gif" alt="ivysaur" loading="lazy"><span class="num">#002</span><span class="nome">ivysaur</span></div>
+<div class="card" data-nome="venusaur" onclick="copiar(this)"><img src="sprites/venusaur_default_walk.gif" alt="venusaur" loading="lazy"><span class="num">#003</span><span class="nome">venusaur</span></div>
+<div class="card" data-nome="charmander" onclick="copiar(this)"><img src="sprites/charmander_default_walk.gif" alt="charmander" loading="lazy"><span class="num">#004</span><span class="nome">charmander</span></div>
+<div class="card" data-nome="charmeleon" onclick="copiar(this)"><img src="sprites/charmeleon_default_walk.gif" alt="charmeleon" loading="lazy"><span class="num">#005</span><span class="nome">charmeleon</span></div>
+<div class="card" data-nome="charizard" onclick="copiar(this)"><img src="sprites/charizard_default_walk.gif" alt="charizard" loading="lazy"><span class="num">#006</span><span class="nome">charizard</span></div>
+<div class="card" data-nome="squirtle" onclick="copiar(this)"><img src="sprites/squirtle_default_walk.gif" alt="squirtle" loading="lazy"><span class="num">#007</span><span class="nome">squirtle</span></div>
+<div class="card" data-nome="wartortle" onclick="copiar(this)"><img src="sprites/wartortle_default_walk.gif" alt="wartortle" loading="lazy"><span class="num">#008</span><span class="nome">wartortle</span></div>
+<div class="card" data-nome="blastoise" onclick="copiar(this)"><img src="sprites/blastoise_default_walk.gif" alt="blastoise" loading="lazy"><span class="num">#009</span><span class="nome">blastoise</span></div>
+<div class="card" data-nome="caterpie" onclick="copiar(this)"><img src="sprites/caterpie_default_walk.gif" alt="caterpie" loading="lazy"><span class="num">#010</span><span class="nome">caterpie</span></div>
+<div class="card" data-nome="metapod" onclick="copiar(this)"><img src="sprites/metapod_default_walk.gif" alt="metapod" loading="lazy"><span class="num">#011</span><span class="nome">metapod</span></div>
+<div class="card" data-nome="butterfree" onclick="copiar(this)"><img src="sprites/butterfree_default_walk.gif" alt="butterfree" loading="lazy"><span class="num">#012</span><span class="nome">butterfree</span></div>
+<div class="card" data-nome="weedle" onclick="copiar(this)"><img src="sprites/weedle_default_walk.gif" alt="weedle" loading="lazy"><span class="num">#013</span><span class="nome">weedle</span></div>
+<div class="card" data-nome="kakuna" onclick="copiar(this)"><img src="sprites/kakuna_default_walk.gif" alt="kakuna" loading="lazy"><span class="num">#014</span><span class="nome">kakuna</span></div>
+<div class="card" data-nome="beedrill" onclick="copiar(this)"><img src="sprites/beedrill_default_walk.gif" alt="beedrill" loading="lazy"><span class="num">#015</span><span class="nome">beedrill</span></div>
+<div class="card" data-nome="pidgey" onclick="copiar(this)"><img src="sprites/pidgey_default_walk.gif" alt="pidgey" loading="lazy"><span class="num">#016</span><span class="nome">pidgey</span></div>
+<div class="card" data-nome="pidgeotto" onclick="copiar(this)"><img src="sprites/pidgeotto_default_walk.gif" alt="pidgeotto" loading="lazy"><span class="num">#017</span><span class="nome">pidgeotto</span></div>
+<div class="card" data-nome="pidgeot" onclick="copiar(this)"><img src="sprites/pidgeot_default_walk.gif" alt="pidgeot" loading="lazy"><span class="num">#018</span><span class="nome">pidgeot</span></div>
+<div class="card" data-nome="rattata" onclick="copiar(this)"><img src="sprites/rattata_default_walk.gif" alt="rattata" loading="lazy"><span class="num">#019</span><span class="nome">rattata</span></div>
+<div class="card" data-nome="raticate" onclick="copiar(this)"><img src="sprites/raticate_default_walk.gif" alt="raticate" loading="lazy"><span class="num">#020</span><span class="nome">raticate</span></div>
+<div class="card" data-nome="spearow" onclick="copiar(this)"><img src="sprites/spearow_default_walk.gif" alt="spearow" loading="lazy"><span class="num">#021</span><span class="nome">spearow</span></div>
+<div class="card" data-nome="fearow" onclick="copiar(this)"><img src="sprites/fearow_default_walk.gif" alt="fearow" loading="lazy"><span class="num">#022</span><span class="nome">fearow</span></div>
+<div class="card" data-nome="ekans" onclick="copiar(this)"><img src="sprites/ekans_default_walk.gif" alt="ekans" loading="lazy"><span class="num">#023</span><span class="nome">ekans</span></div>
+<div class="card" data-nome="arbok" onclick="copiar(this)"><img src="sprites/arbok_default_walk.gif" alt="arbok" loading="lazy"><span class="num">#024</span><span class="nome">arbok</span></div>
+<div class="card" data-nome="pikachu" onclick="copiar(this)"><img src="sprites/pikachu_default_walk.gif" alt="pikachu" loading="lazy"><span class="num">#025</span><span class="nome">pikachu</span></div>
+<div class="card" data-nome="raichu" onclick="copiar(this)"><img src="sprites/raichu_default_walk.gif" alt="raichu" loading="lazy"><span class="num">#026</span><span class="nome">raichu</span></div>
+<div class="card" data-nome="sandshrew" onclick="copiar(this)"><img src="sprites/sandshrew_default_walk.gif" alt="sandshrew" loading="lazy"><span class="num">#027</span><span class="nome">sandshrew</span></div>
+<div class="card" data-nome="sandslash" onclick="copiar(this)"><img src="sprites/sandslash_default_walk.gif" alt="sandslash" loading="lazy"><span class="num">#028</span><span class="nome">sandslash</span></div>
+<div class="card" data-nome="nidoran_female" onclick="copiar(this)"><img src="sprites/nidoran_female_default_walk.gif" alt="nidoran_female" loading="lazy"><span class="num">#029</span><span class="nome">nidoran_female</span></div>
+<div class="card" data-nome="nidorina" onclick="copiar(this)"><img src="sprites/nidorina_default_walk.gif" alt="nidorina" loading="lazy"><span class="num">#030</span><span class="nome">nidorina</span></div>
+<div class="card" data-nome="nidoqueen" onclick="copiar(this)"><img src="sprites/nidoqueen_default_walk.gif" alt="nidoqueen" loading="lazy"><span class="num">#031</span><span class="nome">nidoqueen</span></div>
+<div class="card" data-nome="nidoran_male" onclick="copiar(this)"><img src="sprites/nidoran_male_default_walk.gif" alt="nidoran_male" loading="lazy"><span class="num">#032</span><span class="nome">nidoran_male</span></div>
+<div class="card" data-nome="nidorino" onclick="copiar(this)"><img src="sprites/nidorino_default_walk.gif" alt="nidorino" loading="lazy"><span class="num">#033</span><span class="nome">nidorino</span></div>
+<div class="card" data-nome="nidoking" onclick="copiar(this)"><img src="sprites/nidoking_default_walk.gif" alt="nidoking" loading="lazy"><span class="num">#034</span><span class="nome">nidoking</span></div>
+<div class="card" data-nome="clefairy" onclick="copiar(this)"><img src="sprites/clefairy_default_walk.gif" alt="clefairy" loading="lazy"><span class="num">#035</span><span class="nome">clefairy</span></div>
+<div class="card" data-nome="clefable" onclick="copiar(this)"><img src="sprites/clefable_default_walk.gif" alt="clefable" loading="lazy"><span class="num">#036</span><span class="nome">clefable</span></div>
+<div class="card" data-nome="vulpix" onclick="copiar(this)"><img src="sprites/vulpix_default_walk.gif" alt="vulpix" loading="lazy"><span class="num">#037</span><span class="nome">vulpix</span></div>
+<div class="card" data-nome="ninetales" onclick="copiar(this)"><img src="sprites/ninetales_default_walk.gif" alt="ninetales" loading="lazy"><span class="num">#038</span><span class="nome">ninetales</span></div>
+<div class="card" data-nome="jigglypuff" onclick="copiar(this)"><img src="sprites/jigglypuff_default_walk.gif" alt="jigglypuff" loading="lazy"><span class="num">#039</span><span class="nome">jigglypuff</span></div>
+<div class="card" data-nome="wigglytuff" onclick="copiar(this)"><img src="sprites/wigglytuff_default_walk.gif" alt="wigglytuff" loading="lazy"><span class="num">#040</span><span class="nome">wigglytuff</span></div>
+<div class="card" data-nome="zubat" onclick="copiar(this)"><img src="sprites/zubat_default_walk.gif" alt="zubat" loading="lazy"><span class="num">#041</span><span class="nome">zubat</span></div>
+<div class="card" data-nome="golbat" onclick="copiar(this)"><img src="sprites/golbat_default_walk.gif" alt="golbat" loading="lazy"><span class="num">#042</span><span class="nome">golbat</span></div>
+<div class="card" data-nome="oddish" onclick="copiar(this)"><img src="sprites/oddish_default_walk.gif" alt="oddish" loading="lazy"><span class="num">#043</span><span class="nome">oddish</span></div>
+<div class="card" data-nome="gloom" onclick="copiar(this)"><img src="sprites/gloom_default_walk.gif" alt="gloom" loading="lazy"><span class="num">#044</span><span class="nome">gloom</span></div>
+<div class="card" data-nome="vileplume" onclick="copiar(this)"><img src="sprites/vileplume_default_walk.gif" alt="vileplume" loading="lazy"><span class="num">#045</span><span class="nome">vileplume</span></div>
+<div class="card" data-nome="paras" onclick="copiar(this)"><img src="sprites/paras_default_walk.gif" alt="paras" loading="lazy"><span class="num">#046</span><span class="nome">paras</span></div>
+<div class="card" data-nome="parasect" onclick="copiar(this)"><img src="sprites/parasect_default_walk.gif" alt="parasect" loading="lazy"><span class="num">#047</span><span class="nome">parasect</span></div>
+<div class="card" data-nome="venonat" onclick="copiar(this)"><img src="sprites/venonat_default_walk.gif" alt="venonat" loading="lazy"><span class="num">#048</span><span class="nome">venonat</span></div>
+<div class="card" data-nome="venomoth" onclick="copiar(this)"><img src="sprites/venomoth_default_walk.gif" alt="venomoth" loading="lazy"><span class="num">#049</span><span class="nome">venomoth</span></div>
+<div class="card" data-nome="diglett" onclick="copiar(this)"><img src="sprites/diglett_default_walk.gif" alt="diglett" loading="lazy"><span class="num">#050</span><span class="nome">diglett</span></div>
+<div class="card" data-nome="dugtrio" onclick="copiar(this)"><img src="sprites/dugtrio_default_walk.gif" alt="dugtrio" loading="lazy"><span class="num">#051</span><span class="nome">dugtrio</span></div>
+<div class="card" data-nome="meowth" onclick="copiar(this)"><img src="sprites/meowth_default_walk.gif" alt="meowth" loading="lazy"><span class="num">#052</span><span class="nome">meowth</span></div>
+<div class="card" data-nome="persian" onclick="copiar(this)"><img src="sprites/persian_default_walk.gif" alt="persian" loading="lazy"><span class="num">#053</span><span class="nome">persian</span></div>
+<div class="card" data-nome="psyduck" onclick="copiar(this)"><img src="sprites/psyduck_default_walk.gif" alt="psyduck" loading="lazy"><span class="num">#054</span><span class="nome">psyduck</span></div>
+<div class="card" data-nome="golduck" onclick="copiar(this)"><img src="sprites/golduck_default_walk.gif" alt="golduck" loading="lazy"><span class="num">#055</span><span class="nome">golduck</span></div>
+<div class="card" data-nome="mankey" onclick="copiar(this)"><img src="sprites/mankey_default_walk.gif" alt="mankey" loading="lazy"><span class="num">#056</span><span class="nome">mankey</span></div>
+<div class="card" data-nome="primeape" onclick="copiar(this)"><img src="sprites/primeape_default_walk.gif" alt="primeape" loading="lazy"><span class="num">#057</span><span class="nome">primeape</span></div>
+<div class="card" data-nome="growlithe" onclick="copiar(this)"><img src="sprites/growlithe_default_walk.gif" alt="growlithe" loading="lazy"><span class="num">#058</span><span class="nome">growlithe</span></div>
+<div class="card" data-nome="arcanine" onclick="copiar(this)"><img src="sprites/arcanine_default_walk.gif" alt="arcanine" loading="lazy"><span class="num">#059</span><span class="nome">arcanine</span></div>
+<div class="card" data-nome="poliwag" onclick="copiar(this)"><img src="sprites/poliwag_default_walk.gif" alt="poliwag" loading="lazy"><span class="num">#060</span><span class="nome">poliwag</span></div>
+<div class="card" data-nome="poliwhirl" onclick="copiar(this)"><img src="sprites/poliwhirl_default_walk.gif" alt="poliwhirl" loading="lazy"><span class="num">#061</span><span class="nome">poliwhirl</span></div>
+<div class="card" data-nome="poliwrath" onclick="copiar(this)"><img src="sprites/poliwrath_default_walk.gif" alt="poliwrath" loading="lazy"><span class="num">#062</span><span class="nome">poliwrath</span></div>
+<div class="card" data-nome="abra" onclick="copiar(this)"><img src="sprites/abra_default_walk.gif" alt="abra" loading="lazy"><span class="num">#063</span><span class="nome">abra</span></div>
+<div class="card" data-nome="kadabra" onclick="copiar(this)"><img src="sprites/kadabra_default_walk.gif" alt="kadabra" loading="lazy"><span class="num">#064</span><span class="nome">kadabra</span></div>
+<div class="card" data-nome="alakazam" onclick="copiar(this)"><img src="sprites/alakazam_default_walk.gif" alt="alakazam" loading="lazy"><span class="num">#065</span><span class="nome">alakazam</span></div>
+<div class="card" data-nome="machop" onclick="copiar(this)"><img src="sprites/machop_default_walk.gif" alt="machop" loading="lazy"><span class="num">#066</span><span class="nome">machop</span></div>
+<div class="card" data-nome="machoke" onclick="copiar(this)"><img src="sprites/machoke_default_walk.gif" alt="machoke" loading="lazy"><span class="num">#067</span><span class="nome">machoke</span></div>
+<div class="card" data-nome="machamp" onclick="copiar(this)"><img src="sprites/machamp_default_walk.gif" alt="machamp" loading="lazy"><span class="num">#068</span><span class="nome">machamp</span></div>
+<div class="card" data-nome="bellsprout" onclick="copiar(this)"><img src="sprites/bellsprout_default_walk.gif" alt="bellsprout" loading="lazy"><span class="num">#069</span><span class="nome">bellsprout</span></div>
+<div class="card" data-nome="weepinbell" onclick="copiar(this)"><img src="sprites/weepinbell_default_walk.gif" alt="weepinbell" loading="lazy"><span class="num">#070</span><span class="nome">weepinbell</span></div>
+<div class="card" data-nome="victreebel" onclick="copiar(this)"><img src="sprites/victreebel_default_walk.gif" alt="victreebel" loading="lazy"><span class="num">#071</span><span class="nome">victreebel</span></div>
+<div class="card" data-nome="tentacool" onclick="copiar(this)"><img src="sprites/tentacool_default_walk.gif" alt="tentacool" loading="lazy"><span class="num">#072</span><span class="nome">tentacool</span></div>
+<div class="card" data-nome="tentacruel" onclick="copiar(this)"><img src="sprites/tentacruel_default_walk.gif" alt="tentacruel" loading="lazy"><span class="num">#073</span><span class="nome">tentacruel</span></div>
+<div class="card" data-nome="geodude" onclick="copiar(this)"><img src="sprites/geodude_default_walk.gif" alt="geodude" loading="lazy"><span class="num">#074</span><span class="nome">geodude</span></div>
+<div class="card" data-nome="graveler" onclick="copiar(this)"><img src="sprites/graveler_default_walk.gif" alt="graveler" loading="lazy"><span class="num">#075</span><span class="nome">graveler</span></div>
+<div class="card" data-nome="golem" onclick="copiar(this)"><img src="sprites/golem_default_walk.gif" alt="golem" loading="lazy"><span class="num">#076</span><span class="nome">golem</span></div>
+<div class="card" data-nome="ponyta" onclick="copiar(this)"><img src="sprites/ponyta_default_walk.gif" alt="ponyta" loading="lazy"><span class="num">#077</span><span class="nome">ponyta</span></div>
+<div class="card" data-nome="rapidash" onclick="copiar(this)"><img src="sprites/rapidash_default_walk.gif" alt="rapidash" loading="lazy"><span class="num">#078</span><span class="nome">rapidash</span></div>
+<div class="card" data-nome="slowpoke" onclick="copiar(this)"><img src="sprites/slowpoke_default_walk.gif" alt="slowpoke" loading="lazy"><span class="num">#079</span><span class="nome">slowpoke</span></div>
+<div class="card" data-nome="slowbro" onclick="copiar(this)"><img src="sprites/slowbro_default_walk.gif" alt="slowbro" loading="lazy"><span class="num">#080</span><span class="nome">slowbro</span></div>
+<div class="card" data-nome="magnemite" onclick="copiar(this)"><img src="sprites/magnemite_default_walk.gif" alt="magnemite" loading="lazy"><span class="num">#081</span><span class="nome">magnemite</span></div>
+<div class="card" data-nome="magneton" onclick="copiar(this)"><img src="sprites/magneton_default_walk.gif" alt="magneton" loading="lazy"><span class="num">#082</span><span class="nome">magneton</span></div>
+<div class="card" data-nome="farfetchd" onclick="copiar(this)"><img src="sprites/farfetchd_default_walk.gif" alt="farfetchd" loading="lazy"><span class="num">#083</span><span class="nome">farfetchd</span></div>
+<div class="card" data-nome="doduo" onclick="copiar(this)"><img src="sprites/doduo_default_walk.gif" alt="doduo" loading="lazy"><span class="num">#084</span><span class="nome">doduo</span></div>
+<div class="card" data-nome="dodrio" onclick="copiar(this)"><img src="sprites/dodrio_default_walk.gif" alt="dodrio" loading="lazy"><span class="num">#085</span><span class="nome">dodrio</span></div>
+<div class="card" data-nome="seel" onclick="copiar(this)"><img src="sprites/seel_default_walk.gif" alt="seel" loading="lazy"><span class="num">#086</span><span class="nome">seel</span></div>
+<div class="card" data-nome="dewgong" onclick="copiar(this)"><img src="sprites/dewgong_default_walk.gif" alt="dewgong" loading="lazy"><span class="num">#087</span><span class="nome">dewgong</span></div>
+<div class="card" data-nome="grimer" onclick="copiar(this)"><img src="sprites/grimer_default_walk.gif" alt="grimer" loading="lazy"><span class="num">#088</span><span class="nome">grimer</span></div>
+<div class="card" data-nome="muk" onclick="copiar(this)"><img src="sprites/muk_default_walk.gif" alt="muk" loading="lazy"><span class="num">#089</span><span class="nome">muk</span></div>
+<div class="card" data-nome="shellder" onclick="copiar(this)"><img src="sprites/shellder_default_walk.gif" alt="shellder" loading="lazy"><span class="num">#090</span><span class="nome">shellder</span></div>
+<div class="card" data-nome="cloyster" onclick="copiar(this)"><img src="sprites/cloyster_default_walk.gif" alt="cloyster" loading="lazy"><span class="num">#091</span><span class="nome">cloyster</span></div>
+<div class="card" data-nome="gastly" onclick="copiar(this)"><img src="sprites/gastly_default_walk.gif" alt="gastly" loading="lazy"><span class="num">#092</span><span class="nome">gastly</span></div>
+<div class="card" data-nome="haunter" onclick="copiar(this)"><img src="sprites/haunter_default_walk.gif" alt="haunter" loading="lazy"><span class="num">#093</span><span class="nome">haunter</span></div>
+<div class="card" data-nome="gengar" onclick="copiar(this)"><img src="sprites/gengar_default_walk.gif" alt="gengar" loading="lazy"><span class="num">#094</span><span class="nome">gengar</span></div>
+<div class="card" data-nome="onix" onclick="copiar(this)"><img src="sprites/onix_default_walk.gif" alt="onix" loading="lazy"><span class="num">#095</span><span class="nome">onix</span></div>
+<div class="card" data-nome="drowzee" onclick="copiar(this)"><img src="sprites/drowzee_default_walk.gif" alt="drowzee" loading="lazy"><span class="num">#096</span><span class="nome">drowzee</span></div>
+<div class="card" data-nome="hypno" onclick="copiar(this)"><img src="sprites/hypno_default_walk.gif" alt="hypno" loading="lazy"><span class="num">#097</span><span class="nome">hypno</span></div>
+<div class="card" data-nome="krabby" onclick="copiar(this)"><img src="sprites/krabby_default_walk.gif" alt="krabby" loading="lazy"><span class="num">#098</span><span class="nome">krabby</span></div>
+<div class="card" data-nome="kingler" onclick="copiar(this)"><img src="sprites/kingler_default_walk.gif" alt="kingler" loading="lazy"><span class="num">#099</span><span class="nome">kingler</span></div>
+<div class="card" data-nome="voltorb" onclick="copiar(this)"><img src="sprites/voltorb_default_walk.gif" alt="voltorb" loading="lazy"><span class="num">#100</span><span class="nome">voltorb</span></div>
+<div class="card" data-nome="electrode" onclick="copiar(this)"><img src="sprites/electrode_default_walk.gif" alt="electrode" loading="lazy"><span class="num">#101</span><span class="nome">electrode</span></div>
+<div class="card" data-nome="exeggcute" onclick="copiar(this)"><img src="sprites/exeggcute_default_walk.gif" alt="exeggcute" loading="lazy"><span class="num">#102</span><span class="nome">exeggcute</span></div>
+<div class="card" data-nome="exeggutor" onclick="copiar(this)"><img src="sprites/exeggutor_default_walk.gif" alt="exeggutor" loading="lazy"><span class="num">#103</span><span class="nome">exeggutor</span></div>
+<div class="card" data-nome="cubone" onclick="copiar(this)"><img src="sprites/cubone_default_walk.gif" alt="cubone" loading="lazy"><span class="num">#104</span><span class="nome">cubone</span></div>
+<div class="card" data-nome="marowak" onclick="copiar(this)"><img src="sprites/marowak_default_walk.gif" alt="marowak" loading="lazy"><span class="num">#105</span><span class="nome">marowak</span></div>
+<div class="card" data-nome="hitmonlee" onclick="copiar(this)"><img src="sprites/hitmonlee_default_walk.gif" alt="hitmonlee" loading="lazy"><span class="num">#106</span><span class="nome">hitmonlee</span></div>
+<div class="card" data-nome="hitmonchan" onclick="copiar(this)"><img src="sprites/hitmonchan_default_walk.gif" alt="hitmonchan" loading="lazy"><span class="num">#107</span><span class="nome">hitmonchan</span></div>
+<div class="card" data-nome="lickitung" onclick="copiar(this)"><img src="sprites/lickitung_default_walk.gif" alt="lickitung" loading="lazy"><span class="num">#108</span><span class="nome">lickitung</span></div>
+<div class="card" data-nome="koffing" onclick="copiar(this)"><img src="sprites/koffing_default_walk.gif" alt="koffing" loading="lazy"><span class="num">#109</span><span class="nome">koffing</span></div>
+<div class="card" data-nome="weezing" onclick="copiar(this)"><img src="sprites/weezing_default_walk.gif" alt="weezing" loading="lazy"><span class="num">#110</span><span class="nome">weezing</span></div>
+<div class="card" data-nome="rhyhorn" onclick="copiar(this)"><img src="sprites/rhyhorn_default_walk.gif" alt="rhyhorn" loading="lazy"><span class="num">#111</span><span class="nome">rhyhorn</span></div>
+<div class="card" data-nome="rhydon" onclick="copiar(this)"><img src="sprites/rhydon_default_walk.gif" alt="rhydon" loading="lazy"><span class="num">#112</span><span class="nome">rhydon</span></div>
+<div class="card" data-nome="chansey" onclick="copiar(this)"><img src="sprites/chansey_default_walk.gif" alt="chansey" loading="lazy"><span class="num">#113</span><span class="nome">chansey</span></div>
+<div class="card" data-nome="tangela" onclick="copiar(this)"><img src="sprites/tangela_default_walk.gif" alt="tangela" loading="lazy"><span class="num">#114</span><span class="nome">tangela</span></div>
+<div class="card" data-nome="kangaskhan" onclick="copiar(this)"><img src="sprites/kangaskhan_default_walk.gif" alt="kangaskhan" loading="lazy"><span class="num">#115</span><span class="nome">kangaskhan</span></div>
+<div class="card" data-nome="horsea" onclick="copiar(this)"><img src="sprites/horsea_default_walk.gif" alt="horsea" loading="lazy"><span class="num">#116</span><span class="nome">horsea</span></div>
+<div class="card" data-nome="seadra" onclick="copiar(this)"><img src="sprites/seadra_default_walk.gif" alt="seadra" loading="lazy"><span class="num">#117</span><span class="nome">seadra</span></div>
+<div class="card" data-nome="goldeen" onclick="copiar(this)"><img src="sprites/goldeen_default_walk.gif" alt="goldeen" loading="lazy"><span class="num">#118</span><span class="nome">goldeen</span></div>
+<div class="card" data-nome="seaking" onclick="copiar(this)"><img src="sprites/seaking_default_walk.gif" alt="seaking" loading="lazy"><span class="num">#119</span><span class="nome">seaking</span></div>
+<div class="card" data-nome="staryu" onclick="copiar(this)"><img src="sprites/staryu_default_walk.gif" alt="staryu" loading="lazy"><span class="num">#120</span><span class="nome">staryu</span></div>
+<div class="card" data-nome="starmie" onclick="copiar(this)"><img src="sprites/starmie_default_walk.gif" alt="starmie" loading="lazy"><span class="num">#121</span><span class="nome">starmie</span></div>
+<div class="card" data-nome="mrmime" onclick="copiar(this)"><img src="sprites/mrmime_default_walk.gif" alt="mrmime" loading="lazy"><span class="num">#122</span><span class="nome">mrmime</span></div>
+<div class="card" data-nome="scyther" onclick="copiar(this)"><img src="sprites/scyther_default_walk.gif" alt="scyther" loading="lazy"><span class="num">#123</span><span class="nome">scyther</span></div>
+<div class="card" data-nome="jynx" onclick="copiar(this)"><img src="sprites/jynx_default_walk.gif" alt="jynx" loading="lazy"><span class="num">#124</span><span class="nome">jynx</span></div>
+<div class="card" data-nome="electabuzz" onclick="copiar(this)"><img src="sprites/electabuzz_default_walk.gif" alt="electabuzz" loading="lazy"><span class="num">#125</span><span class="nome">electabuzz</span></div>
+<div class="card" data-nome="magmar" onclick="copiar(this)"><img src="sprites/magmar_default_walk.gif" alt="magmar" loading="lazy"><span class="num">#126</span><span class="nome">magmar</span></div>
+<div class="card" data-nome="pinsir" onclick="copiar(this)"><img src="sprites/pinsir_default_walk.gif" alt="pinsir" loading="lazy"><span class="num">#127</span><span class="nome">pinsir</span></div>
+<div class="card" data-nome="tauros" onclick="copiar(this)"><img src="sprites/tauros_default_walk.gif" alt="tauros" loading="lazy"><span class="num">#128</span><span class="nome">tauros</span></div>
+<div class="card" data-nome="magikarp" onclick="copiar(this)"><img src="sprites/magikarp_default_walk.gif" alt="magikarp" loading="lazy"><span class="num">#129</span><span class="nome">magikarp</span></div>
+<div class="card" data-nome="gyarados" onclick="copiar(this)"><img src="sprites/gyarados_default_walk.gif" alt="gyarados" loading="lazy"><span class="num">#130</span><span class="nome">gyarados</span></div>
+<div class="card" data-nome="lapras" onclick="copiar(this)"><img src="sprites/lapras_default_walk.gif" alt="lapras" loading="lazy"><span class="num">#131</span><span class="nome">lapras</span></div>
+<div class="card" data-nome="ditto" onclick="copiar(this)"><img src="sprites/ditto_default_walk.gif" alt="ditto" loading="lazy"><span class="num">#132</span><span class="nome">ditto</span></div>
+<div class="card" data-nome="eevee" onclick="copiar(this)"><img src="sprites/eevee_default_walk.gif" alt="eevee" loading="lazy"><span class="num">#133</span><span class="nome">eevee</span></div>
+<div class="card" data-nome="vaporeon" onclick="copiar(this)"><img src="sprites/vaporeon_default_walk.gif" alt="vaporeon" loading="lazy"><span class="num">#134</span><span class="nome">vaporeon</span></div>
+<div class="card" data-nome="jolteon" onclick="copiar(this)"><img src="sprites/jolteon_default_walk.gif" alt="jolteon" loading="lazy"><span class="num">#135</span><span class="nome">jolteon</span></div>
+<div class="card" data-nome="flareon" onclick="copiar(this)"><img src="sprites/flareon_default_walk.gif" alt="flareon" loading="lazy"><span class="num">#136</span><span class="nome">flareon</span></div>
+<div class="card" data-nome="porygon" onclick="copiar(this)"><img src="sprites/porygon_default_walk.gif" alt="porygon" loading="lazy"><span class="num">#137</span><span class="nome">porygon</span></div>
+<div class="card" data-nome="omanyte" onclick="copiar(this)"><img src="sprites/omanyte_default_walk.gif" alt="omanyte" loading="lazy"><span class="num">#138</span><span class="nome">omanyte</span></div>
+<div class="card" data-nome="omastar" onclick="copiar(this)"><img src="sprites/omastar_default_walk.gif" alt="omastar" loading="lazy"><span class="num">#139</span><span class="nome">omastar</span></div>
+<div class="card" data-nome="kabuto" onclick="copiar(this)"><img src="sprites/kabuto_default_walk.gif" alt="kabuto" loading="lazy"><span class="num">#140</span><span class="nome">kabuto</span></div>
+<div class="card" data-nome="kabutops" onclick="copiar(this)"><img src="sprites/kabutops_default_walk.gif" alt="kabutops" loading="lazy"><span class="num">#141</span><span class="nome">kabutops</span></div>
+<div class="card" data-nome="aerodactyl" onclick="copiar(this)"><img src="sprites/aerodactyl_default_walk.gif" alt="aerodactyl" loading="lazy"><span class="num">#142</span><span class="nome">aerodactyl</span></div>
+<div class="card" data-nome="snorlax" onclick="copiar(this)"><img src="sprites/snorlax_default_walk.gif" alt="snorlax" loading="lazy"><span class="num">#143</span><span class="nome">snorlax</span></div>
+<div class="card" data-nome="articuno" onclick="copiar(this)"><img src="sprites/articuno_default_walk.gif" alt="articuno" loading="lazy"><span class="num">#144</span><span class="nome">articuno</span></div>
+<div class="card" data-nome="zapdos" onclick="copiar(this)"><img src="sprites/zapdos_default_walk.gif" alt="zapdos" loading="lazy"><span class="num">#145</span><span class="nome">zapdos</span></div>
+<div class="card" data-nome="moltres" onclick="copiar(this)"><img src="sprites/moltres_default_walk.gif" alt="moltres" loading="lazy"><span class="num">#146</span><span class="nome">moltres</span></div>
+<div class="card" data-nome="dratini" onclick="copiar(this)"><img src="sprites/dratini_default_walk.gif" alt="dratini" loading="lazy"><span class="num">#147</span><span class="nome">dratini</span></div>
+<div class="card" data-nome="dragonair" onclick="copiar(this)"><img src="sprites/dragonair_default_walk.gif" alt="dragonair" loading="lazy"><span class="num">#148</span><span class="nome">dragonair</span></div>
+<div class="card" data-nome="dragonite" onclick="copiar(this)"><img src="sprites/dragonite_default_walk.gif" alt="dragonite" loading="lazy"><span class="num">#149</span><span class="nome">dragonite</span></div>
+<div class="card" data-nome="mewtwo" onclick="copiar(this)"><img src="sprites/mewtwo_default_walk.gif" alt="mewtwo" loading="lazy"><span class="num">#150</span><span class="nome">mewtwo</span></div>
+<div class="card" data-nome="mew" onclick="copiar(this)"><img src="sprites/mew_default_walk.gif" alt="mew" loading="lazy"><span class="num">#151</span><span class="nome">mew</span></div>
+<div class="card" data-nome="pikachu_female" onclick="copiar(this)"><img src="sprites/pikachu_female_default_walk.gif" alt="pikachu_female" loading="lazy"><span class="num">extra</span><span class="nome">pikachu_female</span></div>
+<div class="card" data-nome="venusaur_female" onclick="copiar(this)"><img src="sprites/venusaur_female_default_walk.gif" alt="venusaur_female" loading="lazy"><span class="num">extra</span><span class="nome">venusaur_female</span></div>
+</div>
+<div id="toast"></div>
+<script>
+  const busca = document.getElementById('busca');
+  busca.addEventListener('input', () => {
+    const q = busca.value.toLowerCase().trim();
+    document.querySelectorAll('.card').forEach(c =>
+      c.style.display = c.dataset.nome.includes(q) ? '' : 'none');
+  });
+  let timer;
+  function copiar(card) {
+    const nome = card.dataset.nome;
+    navigator.clipboard && navigator.clipboard.writeText(nome);
+    const t = document.getElementById('toast');
+    t.textContent = nome + ' copiado!';
+    t.style.opacity = 1;
+    clearTimeout(timer);
+    timer = setTimeout(() => t.style.opacity = 0, 1500);
+  }
+</script>
+</body>
+</html>

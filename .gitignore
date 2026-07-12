@@ -1,0 +1,5 @@
+# cache de sprites baixados sob demanda (o gif_cam.py baixa sozinho)
+02_GIF-WEBCAM/sprites/
+
+__pycache__/
+*.pyc
