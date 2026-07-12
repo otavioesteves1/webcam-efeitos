@@ -139,8 +139,9 @@ def escolher_moldura():
 
 
 def montar_cena(caminho_moldura, largura, altura):
-    """Monta o quadro base: moldura centralizada no tamanho do video, e devolve
-    tambem a posicao/tamanho do buraco ja em coordenadas do video."""
+    """Monta o quadro base: da zoom na moldura ate ela cobrir a tela INTEIRA
+    (sem barras nas laterais) e corta a sobra, mantendo o buraco o mais
+    centralizado possivel. Devolve a cena e o buraco em coordenadas do video."""
     img = cv2.imread(caminho_moldura)
     if img is None:
         print(f"ERRO: nao consegui abrir {os.path.basename(caminho_moldura)}.")
@@ -154,16 +155,18 @@ def montar_cena(caminho_moldura, largura, altura):
     cx, cy, ex, ey = buraco
 
     ih, iw = img.shape[:2]
-    fator = min(largura / iw, altura / ih)
+    fator = max(largura / iw, altura / ih)
     novo_w, novo_h = round(iw * fator), round(ih * fator)
-    off_x, off_y = (largura - novo_w) // 2, (altura - novo_h) // 2
+    grande = cv2.resize(img, (novo_w, novo_h),
+                        interpolation=cv2.INTER_AREA if fator < 1 else cv2.INTER_LINEAR)
 
-    cor_fundo = img[2, 2].tolist()  # cor do canto da imagem preenche as laterais
-    cena = np.full((altura, largura, 3), cor_fundo, dtype=np.uint8)
-    cena[off_y:off_y + novo_h, off_x:off_x + novo_w] = cv2.resize(
-        img, (novo_w, novo_h), interpolation=cv2.INTER_AREA)
+    # janela de recorte com o buraco o mais no centro possivel (sem sair da imagem)
+    hx, hy = cx * fator, cy * fator
+    off_x = int(min(max(hx - largura / 2, 0), novo_w - largura))
+    off_y = int(min(max(hy - altura / 2, 0), novo_h - altura))
+    cena = np.ascontiguousarray(grande[off_y:off_y + altura, off_x:off_x + largura])
 
-    return cena, (cx * fator + off_x, cy * fator + off_y, ex * fator, ey * fator)
+    return cena, (hx - off_x, hy - off_y, ex * fator, ey * fator)
 
 
 def mascara_oval(larg, alt, feather=9):
@@ -198,10 +201,11 @@ def main():
     cena_base, (bx, by, bw, bh) = montar_cena(escolher_moldura(), LARGURA, ALTURA)
     print(f"Buraco da moldura: centro=({bx:.0f},{by:.0f}) tamanho={bw:.0f}x{bh:.0f}")
 
-    # regiao (patch) do video onde o rosto vai ser colado
-    px = int(bx - bw / 2) - 4
-    py = int(by - bh / 2) - 4
-    pw, ph = int(bw) + 8, int(bh) + 8
+    # regiao (patch) do video onde o rosto vai ser colado (presa dentro da tela)
+    px = max(0, int(bx - bw / 2) - 4)
+    py = max(0, int(by - bh / 2) - 4)
+    pw = min(int(bw) + 8, LARGURA - px)
+    ph = min(int(bh) + 8, ALTURA - py)
     mascara = mascara_oval(pw, ph)
     fundo_patch = cena_base[py:py + ph, px:px + pw].astype(np.float32) * (1 - mascara)
 
