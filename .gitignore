@@ -1,5 +1,8 @@
 # cache de sprites baixados sob demanda (o gif_cam.py baixa sozinho)
 02_GIF-WEBCAM/sprites/
 
+# modelo baixado sob demanda (o moldura_cam.py reusa o do 01_PIS-CAM ou baixa)
+03_MOLDURA-CAM/face_landmarker.task
+
 __pycache__/
 *.pyc

@@ -12,6 +12,7 @@ Tem dois programas aqui dentro:
 |---|---|
 | **[01_PIS-CAM](01_PIS-CAM/)** | Detecta quando você **pisca**: toca um bip no seu PC e mostra um "PISCOU!" no vídeo que seus amigos veem |
 | **[02_GIF-WEBCAM](02_GIF-WEBCAM/)** | **Pokémons** em pixel-art passeiam na parte de baixo do seu vídeo, no estilo do plugin [vscode-pokemon](https://github.com/jakobhoeg/vscode-pokemon) |
+| **[03_MOLDURA-CAM](03_MOLDURA-CAM/)** | Seu **rosto dentro de uma moldura** (tipo "cara no buraco" de parque de diversão): a câmera acha seu rosto e encaixa ele no buraco da imagem — o resto some |
 
 ## O que você precisa
 
@@ -77,6 +78,20 @@ pokémon novo, o gif do bichinho é baixado sozinho do repositório do
 - a transparência dos sprites é pré-calculada (nada de conta pesada por frame)
 - 20 fps por padrão (suave no Discord e leve; mude `FPS` no topo do `gif_cam.py` se quiser)
 - consumo medido: ~20% de um núcleo de CPU, mesmo com pokémon gigante na tela
+
+## 🪳 03_MOLDURA-CAM
+
+O clássico "cara no buraco": o programa detecta seu rosto na webcam, recorta só ele
+e encaixa no buraco branco da `moldura.png`. Seu corpo e o fundo desaparecem — o que
+vai pro Discord é a moldura com a sua cara.
+
+- **Troque a moldura à vontade:** substitua o `moldura.png` por qualquer imagem que
+  tenha um buraco **branco puro** oval ou redondo (que não encoste nas bordas) — o
+  programa encontra o buraco sozinho
+- O rosto acompanha você com suavização (sem tremedeira), e o vídeo é espelhado por
+  padrão pra você se reconhecer melhor (`ESPELHAR` no topo do `moldura_cam.py`)
+- Ajustes no topo do [`moldura_cam.py`](03_MOLDURA-CAM/moldura_cam.py): folga do recorte
+  do rosto, suavização do movimento, fps
 
 ## Créditos
 
