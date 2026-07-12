@@ -1,3 +1,3 @@
 # Escreva o nome da moldura que quer usar (uma so).
-# Disponiveis: barata, dora
-dora
+# Disponiveis: barata, dora, rato
+rato
