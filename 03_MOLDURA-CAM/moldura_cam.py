@@ -4,8 +4,9 @@ MolduraCam — seu rosto dentro de uma moldura (tipo "cara no buraco" de parque)
 A camera acha seu rosto, recorta so ele e encaixa no buraco branco da moldura.
 Seu corpo e o fundo somem: o que vai pro Discord e a moldura com sua cara.
 
-A moldura e o arquivo moldura.png nesta pasta. Pode trocar por qualquer imagem
-que tenha um buraco BRANCO oval/redondo — o programa acha o buraco sozinho.
+As molduras ficam na pasta molduras/ e voce escolhe qual usar escrevendo o nome
+dela no moldura.txt. Qualquer imagem com um buraco BRANCO (ou preto) oval/redondo
+funciona — o programa acha o buraco sozinho.
 
 No Discord: Configuracoes > Voz e video > Camera > "OBS Virtual Camera"
 
@@ -38,7 +39,9 @@ PRIORIDADE_BAIXA = True  # o Windows da CPU pro jogo antes do MolduraCam
 # ----------------------------------------------
 
 PASTA = os.path.dirname(os.path.abspath(__file__))
-ARQ_MOLDURA = os.path.join(PASTA, "moldura.png")
+PASTA_MOLDURAS = os.path.join(PASTA, "molduras")
+ARQ_ESCOLHA = os.path.join(PASTA, "moldura.txt")
+EXTENSOES = (".png", ".jpg", ".jpeg", ".webp", ".bmp")
 URL_MODELO = ("https://storage.googleapis.com/mediapipe-models/face_landmarker/"
               "face_landmarker/float16/1/face_landmarker.task")
 
@@ -72,23 +75,67 @@ def achar_modelo():
 
 
 def achar_buraco(img):
-    """Acha o buraco branco da moldura: o maior blob branco que nao encosta na
-    borda da imagem. Retorna (cx, cy, larg, alt) da elipse, ou None."""
+    """Acha o buraco da moldura: o maior blob branco (ou preto) que nao encosta
+    na borda da imagem. Retorna (cx, cy, larg, alt) da elipse, ou None."""
     h, w = img.shape[:2]
-    branco = cv2.inRange(img, (248, 248, 248), (255, 255, 255))
-    contornos, _ = cv2.findContours(branco, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    candidatos = []
-    for c in contornos:
-        x, y, bw, bh = cv2.boundingRect(c)
-        area = cv2.contourArea(c)
-        toca_borda = x <= 2 or y <= 2 or x + bw >= w - 2 or y + bh >= h - 2
-        if not toca_borda and 0.002 < area / (w * h) < 0.25 and len(c) >= 5:
-            candidatos.append((area, c))
-    if not candidatos:
-        return None
-    melhor = max(candidatos, key=lambda t: t[0])[1]
-    (cx, cy), (ex, ey), _ang = cv2.fitEllipse(melhor)
-    return cx, cy, ex, ey
+    faixas = [
+        cv2.inRange(img, (248, 248, 248), (255, 255, 255)),  # buraco branco
+        cv2.inRange(img, (0, 0, 0), (10, 10, 10)),           # buraco preto
+    ]
+    for mascara in faixas:
+        contornos, _ = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        candidatos = []
+        for c in contornos:
+            x, y, bw, bh = cv2.boundingRect(c)
+            area = cv2.contourArea(c)
+            toca_borda = x <= 2 or y <= 2 or x + bw >= w - 2 or y + bh >= h - 2
+            if not toca_borda and 0.002 < area / (w * h) < 0.3 and len(c) >= 5:
+                candidatos.append((area, c))
+        if candidatos:
+            melhor = max(candidatos, key=lambda t: t[0])[1]
+            (cx, cy), (ex, ey), _ang = cv2.fitEllipse(melhor)
+            return cx, cy, ex, ey
+    return None
+
+
+def listar_molduras():
+    os.makedirs(PASTA_MOLDURAS, exist_ok=True)
+    return sorted(f for f in os.listdir(PASTA_MOLDURAS)
+                  if f.lower().endswith(EXTENSOES))
+
+
+def escolher_moldura():
+    """Le o moldura.txt e devolve o caminho da moldura escolhida."""
+    disponiveis = listar_molduras()
+    if not disponiveis:
+        print(f"ERRO: nenhuma imagem na pasta {os.path.basename(PASTA_MOLDURAS)}/.")
+        print("Coloque imagens de moldura (com buraco branco ou preto) la dentro.")
+        sys.exit(1)
+
+    if not os.path.exists(ARQ_ESCOLHA):
+        padrao = os.path.splitext(disponiveis[0])[0]
+        with open(ARQ_ESCOLHA, "w", encoding="utf-8") as f:
+            f.write("# Escreva o nome da moldura que quer usar (uma so).\n")
+            f.write("# Disponiveis: " + ", ".join(os.path.splitext(d)[0] for d in disponiveis) + "\n")
+            f.write(padrao + "\n")
+        print(f"Criei o moldura.txt com a moldura '{padrao}'.")
+
+    escolha = ""
+    with open(ARQ_ESCOLHA, encoding="utf-8") as f:
+        for linha in f:
+            linha = linha.strip().lower()
+            if linha and not linha.startswith("#"):
+                escolha = linha
+                break
+
+    for arq in disponiveis:
+        if arq.lower() == escolha or os.path.splitext(arq)[0].lower() == escolha:
+            print(f"Moldura escolhida: {os.path.splitext(arq)[0]}")
+            return os.path.join(PASTA_MOLDURAS, arq)
+
+    print(f"ERRO: nao achei a moldura '{escolha}' na pasta molduras/.")
+    print("Disponiveis: " + ", ".join(os.path.splitext(d)[0] for d in disponiveis))
+    sys.exit(1)
 
 
 def montar_cena(caminho_moldura, largura, altura):
@@ -97,13 +144,12 @@ def montar_cena(caminho_moldura, largura, altura):
     img = cv2.imread(caminho_moldura)
     if img is None:
         print(f"ERRO: nao consegui abrir {os.path.basename(caminho_moldura)}.")
-        print("Coloque a imagem da moldura (com buraco branco) nessa pasta e rode de novo.")
         sys.exit(1)
 
     buraco = achar_buraco(img)
     if buraco is None:
-        print("ERRO: nao achei um buraco branco na moldura.")
-        print("O buraco precisa ser branco puro e nao encostar nas bordas da imagem.")
+        print("ERRO: nao achei um buraco branco (nem preto) nessa moldura.")
+        print("O buraco precisa ser branco ou preto puro e nao encostar nas bordas da imagem.")
         sys.exit(1)
     cx, cy, ex, ey = buraco
 
@@ -149,7 +195,7 @@ def main():
     if PRIORIDADE_BAIXA and baixar_prioridade():
         print("Prioridade baixa ativada: seu jogo vem primeiro.")
 
-    cena_base, (bx, by, bw, bh) = montar_cena(ARQ_MOLDURA, LARGURA, ALTURA)
+    cena_base, (bx, by, bw, bh) = montar_cena(escolher_moldura(), LARGURA, ALTURA)
     print(f"Buraco da moldura: centro=({bx:.0f},{by:.0f}) tamanho={bw:.0f}x{bh:.0f}")
 
     # regiao (patch) do video onde o rosto vai ser colado

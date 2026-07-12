@@ -82,12 +82,14 @@ pokémon novo, o gif do bichinho é baixado sozinho do repositório do
 ## 🪳 03_MOLDURA-CAM
 
 O clássico "cara no buraco": o programa detecta seu rosto na webcam, recorta só ele
-e encaixa no buraco branco da `moldura.png`. Seu corpo e o fundo desaparecem — o que
-vai pro Discord é a moldura com a sua cara.
+e encaixa no buraco da moldura. Seu corpo e o fundo desaparecem — o que vai pro
+Discord é a moldura com a sua cara.
 
-- **Troque a moldura à vontade:** substitua o `moldura.png` por qualquer imagem que
-  tenha um buraco **branco puro** oval ou redondo (que não encoste nas bordas) — o
-  programa encontra o buraco sozinho
+- As imagens ficam na pasta [`molduras/`](03_MOLDURA-CAM/molduras/) e você escolhe
+  qual usar escrevendo o nome dela no [`moldura.txt`](03_MOLDURA-CAM/moldura.txt)
+- **Adicione as suas:** jogue na pasta `molduras/` qualquer imagem que tenha um buraco
+  **branco puro (ou preto puro)** oval/redondo que não encoste nas bordas — o programa
+  encontra o buraco sozinho
 - O rosto acompanha você com suavização (sem tremedeira), e o vídeo é espelhado por
   padrão pra você se reconhecer melhor (`ESPELHAR` no topo do `moldura_cam.py`)
 - Ajustes no topo do [`moldura_cam.py`](03_MOLDURA-CAM/moldura_cam.py): folga do recorte
