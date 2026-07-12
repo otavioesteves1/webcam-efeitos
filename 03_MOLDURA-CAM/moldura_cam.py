@@ -93,8 +93,8 @@ def achar_buraco(img):
                 candidatos.append((area, c))
         if candidatos:
             melhor = max(candidatos, key=lambda t: t[0])[1]
-            (cx, cy), (ex, ey), _ang = cv2.fitEllipse(melhor)
-            return cx, cy, ex, ey
+            x, y, bw, bh = cv2.boundingRect(melhor)
+            return x + bw / 2, y + bh / 2, bw, bh
     return None
 
 
