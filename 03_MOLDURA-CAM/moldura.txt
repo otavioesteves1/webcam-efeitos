@@ -1,4 +1,4 @@
 # Escreva o nome da moldura que quer usar (uma so).
-# Disponiveis: baraca-coca, barata, calca, camponesa, dora, gato-miau,
+# Disponiveis: barata-coca, barata, calca, camponesa, gato-miau,
 #              gato-raio, macaco, olho, olho2, rato, rato2
-gato-raio
+gato-miau

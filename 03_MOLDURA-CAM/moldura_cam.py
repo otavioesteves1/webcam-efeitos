@@ -31,7 +31,7 @@ from mediapipe.tasks.python.vision import (
 # ---------- Ajustes (mexa a vontade) ----------
 LARGURA, ALTURA, FPS = 1280, 720, 20
 
-FOLGA_ROSTO = 0.95    # zoom do rosto no buraco: 1.0 = so o rosto; menor = mais zoom
+FOLGA_ROSTO = 0.85    # zoom do rosto no buraco: 1.0 = so o rosto; menor = mais zoom
                       # (0.95 deixa a cara colada na moldura; 1.2+ mostra o entorno)
 FOLGA_TESTA = 0.15    # extra pra cima, pra testa nao ficar cortada (% da altura do rosto)
 SUAVIZACAO = 0.25     # 0.1 = movimento bem macio / 1.0 = cola no rosto sem suavizar
