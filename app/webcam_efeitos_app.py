@@ -307,11 +307,17 @@ def listar_molduras():
     return mapa
 
 
-def achar_buraco(img):
+def achar_buracos(img):
+    """Acha os buracos da moldura: blobs verde-chroma, rosa-chroma, brancos ou
+    pretos que nao encostam na borda. Retorna (lista [(cx, cy, larg, alt)] do
+    maior pro menor (ate 12), mascara binaria da cor encontrada)."""
     h, w = img.shape[:2]
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     faixas = [
-        cv2.inRange(img, (248, 248, 248), (255, 255, 255)),
-        cv2.inRange(img, (0, 0, 0), (10, 10, 10)),
+        cv2.inRange(hsv, (48, 120, 120), (82, 255, 255)),    # verde chroma (neon; grama fica fora pelo matiz)
+        cv2.inRange(hsv, (132, 110, 110), (178, 255, 255)),  # rosa/magenta chroma
+        cv2.inRange(img, (248, 248, 248), (255, 255, 255)),  # branco
+        cv2.inRange(img, (0, 0, 0), (10, 10, 10)),           # preto
     ]
     for mascara in faixas:
         contornos, _ = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -321,33 +327,40 @@ def achar_buraco(img):
             area = cv2.contourArea(c)
             toca_borda = x <= 2 or y <= 2 or x + bw >= w - 2 or y + bh >= h - 2
             if not toca_borda and 0.002 < area / (w * h) < 0.3 and len(c) >= 5:
-                candidatos.append((area, c))
+                candidatos.append((area, (x + bw / 2, y + bh / 2, bw, bh)))
         if candidatos:
-            melhor = max(candidatos, key=lambda t: t[0])[1]
-            x, y, bw, bh = cv2.boundingRect(melhor)
-            return x + bw / 2, y + bh / 2, bw, bh
-    return None
+            candidatos.sort(key=lambda t: -t[0])
+            return [b for _, b in candidatos[:12]], mascara
+    return [], None
 
 
 def montar_cena(caminho):
-    """Zoom na moldura ate cobrir a tela toda; devolve cena + buraco (ou None)."""
+    """Zoom na moldura ate cobrir a tela toda; devolve cena + lista de buracos
+    em coordenadas do video (ou None)."""
     img = cv2.imread(caminho)
     if img is None:
         return None
-    buraco = achar_buraco(img)
-    if buraco is None:
+    buracos, masc = achar_buracos(img)
+    if not buracos:
         return None
-    cx, cy, ex, ey = buraco
     ih, iw = img.shape[:2]
     fator = max(LARGURA / iw, ALTURA / ih)
     novo_w, novo_h = round(iw * fator), round(ih * fator)
     grande = cv2.resize(img, (novo_w, novo_h),
                         interpolation=cv2.INTER_AREA if fator < 1 else cv2.INTER_LINEAR)
-    hx, hy = cx * fator, cy * fator
+    # recorte centralizado no meio dos buracos
+    hx = sum(b[0] for b in buracos) / len(buracos) * fator
+    hy = sum(b[1] for b in buracos) / len(buracos) * fator
     off_x = int(min(max(hx - LARGURA / 2, 0), novo_w - LARGURA))
     off_y = int(min(max(hy - ALTURA / 2, 0), novo_h - ALTURA))
     cena = np.ascontiguousarray(grande[off_y:off_y + ALTURA, off_x:off_x + LARGURA])
-    return cena, (hx - off_x, hy - off_y, ex * fator, ey * fator)
+    # a mascara acompanha o mesmo zoom/recorte: buraco que ficou meio cortado
+    # pela borda continua sendo preenchido na parte visivel
+    masc_grande = cv2.resize(masc, (novo_w, novo_h), interpolation=cv2.INTER_NEAREST)
+    masc_cena = np.ascontiguousarray(masc_grande[off_y:off_y + ALTURA, off_x:off_x + LARGURA])
+    convertidos = [(cx * fator - off_x, cy * fator - off_y, ex * fator, ey * fator)
+                   for cx, cy, ex, ey in buracos]
+    return cena, convertidos, masc_cena
 
 
 def mascara_oval(larg, alt, feather=9):
@@ -376,35 +389,49 @@ def caixa_do_rosto(landmarks, w, h, aspecto, zoom):
 
 
 class Moldura:
-    """Cena da moldura pronta pra receber o rosto, com cache por (nome, zoom)."""
+    """Cena da moldura pronta pra receber o rosto em TODOS os buracos
+    detectados (uma imagem pode ter varios, ex: parede de TVs)."""
 
     def __init__(self, caminho):
         resultado = montar_cena(caminho)
         if resultado is None:
-            raise ValueError("moldura sem buraco branco/preto detectavel")
-        self.cena, (bx, by, bw, bh) = resultado
-        self.px = max(0, int(bx - bw / 2) - 4)
-        self.py = max(0, int(by - bh / 2) - 4)
-        self.pw = min(int(bw) + 8, LARGURA - self.px)
-        self.ph = min(int(bh) + 8, ALTURA - self.py)
-        self.mascara = mascara_oval(self.pw, self.ph)
-        self.fundo = self.cena[self.py:self.py + self.ph,
-                               self.px:self.px + self.pw].astype(np.float32) * (1 - self.mascara)
+            raise ValueError("moldura sem buraco detectavel")
+        self.cena, buracos, masc_bin = resultado
+        self.buracos = []
+        for bx, by, bw, bh in buracos:
+            px = max(0, int(bx - bw / 2) - 4)
+            py = max(0, int(by - bh / 2) - 4)
+            pw = min(int(bw) + 8, LARGURA - px)
+            ph = min(int(bh) + 8, ALTURA - py)
+            if pw < 14 or ph < 14:
+                continue
+            # mascara com o formato exato do buraco (retangulo de TV, oval, etc)
+            m = cv2.GaussianBlur(masc_bin[py:py + ph, px:px + pw], (9, 9), 0)
+            mascara = (m.astype(np.float32) / 255.0)[:, :, None]
+            fundo = self.cena[py:py + ph, px:px + pw].astype(np.float32) * (1 - mascara)
+            self.buracos.append({"px": px, "py": py, "pw": pw, "ph": ph,
+                                 "mascara": mascara, "fundo": fundo})
+        if not self.buracos:
+            raise ValueError("nenhum buraco cabe na tela")
+        # o maior buraco define o formato do recorte do rosto
+        self.aspecto = self.buracos[0]["pw"] / self.buracos[0]["ph"]
 
     def compor(self, frame, caixa):
         saida = self.cena.copy()
-        if caixa is not None:
-            fh, fw = frame.shape[:2]
-            cx, cy, rw, rh = caixa
-            x0 = int(max(0, min(cx - rw / 2, fw - rw)))
-            y0 = int(max(0, min(cy - rh / 2, fh - rh)))
-            x1, y1 = int(min(x0 + rw, fw)), int(min(y0 + rh, fh))
-            rosto = frame[y0:y1, x0:x1]
-            if rosto.size:
-                rosto = cv2.resize(rosto, (self.pw, self.ph), interpolation=cv2.INTER_LINEAR)
-                patch = rosto.astype(np.float32) * self.mascara + self.fundo
-                saida[self.py:self.py + self.ph,
-                      self.px:self.px + self.pw] = patch.astype(np.uint8)
+        if caixa is None:
+            return saida
+        fh, fw = frame.shape[:2]
+        cx, cy, rw, rh = caixa
+        x0 = int(max(0, min(cx - rw / 2, fw - rw)))
+        y0 = int(max(0, min(cy - rh / 2, fh - rh)))
+        x1, y1 = int(min(x0 + rw, fw)), int(min(y0 + rh, fh))
+        rosto = frame[y0:y1, x0:x1]
+        if not rosto.size:
+            return saida
+        for b in self.buracos:
+            r = cv2.resize(rosto, (b["pw"], b["ph"]), interpolation=cv2.INTER_LINEAR)
+            patch = r.astype(np.float32) * b["mascara"] + b["fundo"]
+            saida[b["py"]:b["py"] + b["ph"], b["px"]:b["px"] + b["pw"]] = patch.astype(np.uint8)
         return saida
 
 
@@ -542,7 +569,7 @@ class Pipeline(threading.Thread):
                 if cfg["moldura"]["ativo"] and moldura:
                     if resultado and resultado.face_landmarks:
                         nova = caixa_do_rosto(resultado.face_landmarks[0], fw, fh,
-                                              moldura.pw / moldura.ph, cfg["moldura"]["zoom"])
+                                              moldura.aspecto, cfg["moldura"]["zoom"])
                         caixa = nova if caixa is None else tuple(
                             0.25 * n + 0.75 * v for n, v in zip(nova, caixa))
                     saida = moldura.compor(frame, caixa)
@@ -591,133 +618,58 @@ class Pipeline(threading.Thread):
 # =====================  INTERFACE  =====================
 
 def interface():
-    import tkinter as tk
-    from tkinter import ttk
+    import webview
 
-    config = Config()
-    status = queue.Queue()
-    pipeline = [None]
+    class Api:
+        """Metodos chamados pelo JavaScript da ui.html (window.pywebview.api)."""
 
-    raiz = tk.Tk()
-    raiz.title("Webcam Efeitos")
-    raiz.resizable(False, False)
+        def __init__(self):
+            self.config = Config()
+            self.fila = queue.Queue()
+            self.pipeline = None
+            self.ultimo = "Pronto. Clique em LIGAR e escolha 'OBS Virtual Camera' no Discord."
 
-    estilo = ttk.Style(raiz)
-    try:
-        estilo.theme_use("vista")
-    except Exception:
-        pass
+        def estado(self):
+            try:
+                while True:
+                    self.ultimo = self.fila.get_nowait()
+            except queue.Empty:
+                pass
+            return {
+                "ligado": bool(self.pipeline and self.pipeline.is_alive()),
+                "status": self.ultimo,
+                "config": self.config.retrato(),
+                "molduras": sorted(listar_molduras()),
+            }
 
-    quadro = ttk.Frame(raiz, padding=14)
-    quadro.grid(sticky="nsew")
+        def alternar(self):
+            if self.pipeline and self.pipeline.is_alive():
+                self.pipeline.parar.set()
+                self.ultimo = "Desligando..."
+                return False
+            self.pipeline = Pipeline(self.config, self.fila)
+            self.pipeline.start()
+            return True
 
-    # ---- botao liga/desliga + status ----
-    var_botao = tk.StringVar(value="▶  LIGAR CAMERA VIRTUAL")
-    var_status = tk.StringVar(value="Pronto. Clique em LIGAR e escolha 'OBS Virtual Camera' no Discord.")
+        def definir(self, secao, chave, valor):
+            self.config.definir(secao, chave, valor)
+            self.config.salvar()
 
-    def alternar():
-        if pipeline[0] and pipeline[0].is_alive():
-            pipeline[0].parar.set()
-            var_botao.set("▶  LIGAR CAMERA VIRTUAL")
-        else:
-            pipeline[0] = Pipeline(config, status)
-            pipeline[0].start()
-            var_botao.set("⏹  DESLIGAR")
+    api = Api()
+    webview.create_window(
+        "Webcam Efeitos",
+        os.path.join(BASE, "ui.html"),
+        js_api=api,
+        width=560, height=900, resizable=False,
+        background_color="#0c0f1d",
+    )
+    webview.start()
 
-    botao = ttk.Button(quadro, textvariable=var_botao, command=alternar)
-    botao.grid(row=0, column=0, columnspan=2, sticky="ew", ipady=8)
-    rotulo_status = ttk.Label(quadro, textvariable=var_status, wraplength=460,
-                              foreground="#555")
-    rotulo_status.grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 12))
-
-    def fazer_check(pai, texto, secao, chave, linha):
-        var = tk.BooleanVar(value=config.retrato()[secao][chave])
-        ttk.Checkbutton(pai, text=texto, variable=var,
-                        command=lambda: config.definir(secao, chave, var.get())
-                        ).grid(row=linha, column=0, columnspan=2, sticky="w")
-        return var
-
-    # ---- POKE-CAM ----
-    fr_poke = ttk.LabelFrame(quadro, text=" 🐛 POKE-CAM — pokemons na tela ", padding=10)
-    fr_poke.grid(row=2, column=0, columnspan=2, sticky="ew", pady=4)
-    fazer_check(fr_poke, "Ativar", "poke", "ativo", 0)
-    ttk.Label(fr_poke, text="Time (um por linha: nome [tamanho 1-100] [shiny]):",
-              foreground="#555").grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 2))
-    texto_time = tk.Text(fr_poke, width=44, height=4, font=("Consolas", 10))
-    texto_time.insert("1.0", config.retrato()["poke"]["time"])
-    texto_time.grid(row=2, column=0, sticky="ew")
-
-    def aplicar_time():
-        config.definir("poke", "time", texto_time.get("1.0", "end").strip())
-        config.salvar()
-
-    ttk.Button(fr_poke, text="Aplicar\ntime", command=aplicar_time).grid(
-        row=2, column=1, sticky="ns", padx=(6, 0))
-
-    # ---- MOLDURA-CAM ----
-    fr_mold = ttk.LabelFrame(quadro, text=" 🖼 MOLDURA-CAM — cara no buraco ", padding=10)
-    fr_mold.grid(row=3, column=0, columnspan=2, sticky="ew", pady=4)
-    fazer_check(fr_mold, "Ativar", "moldura", "ativo", 0)
-    ttk.Label(fr_mold, text="Moldura:").grid(row=1, column=0, sticky="w", pady=(6, 0))
-    nomes = sorted(listar_molduras())
-    var_moldura = tk.StringVar(value=config.retrato()["moldura"]["nome"])
-    combo = ttk.Combobox(fr_mold, textvariable=var_moldura, values=nomes,
-                         state="readonly", width=24)
-    combo.grid(row=1, column=1, sticky="w", pady=(6, 0), padx=(6, 0))
-    combo.bind("<<ComboboxSelected>>",
-               lambda e: (config.definir("moldura", "nome", var_moldura.get()), config.salvar()))
-    ttk.Label(fr_mold, text="Zoom do rosto (esq = mais zoom):").grid(
-        row=2, column=0, sticky="w", pady=(6, 0))
-    var_zoom = tk.DoubleVar(value=config.retrato()["moldura"]["zoom"])
-    ttk.Scale(fr_mold, from_=0.6, to=1.5, variable=var_zoom,
-              command=lambda v: config.definir("moldura", "zoom", round(float(v), 2))
-              ).grid(row=2, column=1, sticky="ew", pady=(6, 0), padx=(6, 0))
-    ttk.Label(fr_mold, foreground="#888",
-              text="Suas molduras: crie uma pasta 'molduras' ao lado do programa").grid(
-        row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
-
-    # ---- PIS-CAM ----
-    fr_pisca = ttk.LabelFrame(quadro, text=" 👁 PIS-CAM — detector de piscada ", padding=10)
-    fr_pisca.grid(row=4, column=0, columnspan=2, sticky="ew", pady=4)
-    fazer_check(fr_pisca, "Ativar", "pisca", "ativo", 0)
-    ttk.Label(fr_pisca, text="Sensibilidade (esq = detecta mais facil):").grid(
-        row=1, column=0, sticky="w", pady=(6, 0))
-    var_limiar = tk.DoubleVar(value=config.retrato()["pisca"]["limiar"])
-    ttk.Scale(fr_pisca, from_=0.3, to=0.7, variable=var_limiar,
-              command=lambda v: config.definir("pisca", "limiar", round(float(v), 2))
-              ).grid(row=1, column=1, sticky="ew", pady=(6, 0), padx=(6, 0))
-    fazer_check(fr_pisca, "Tocar bip ao piscar (so voce ouve)", "pisca", "bip", 2)
-    fazer_check(fr_pisca, "Mostrar contador de piscadas", "pisca", "contador", 3)
-
-    # ---- geral ----
-    fr_geral = ttk.Frame(quadro, padding=(0, 6))
-    fr_geral.grid(row=5, column=0, columnspan=2, sticky="ew")
-    fazer_check(fr_geral, "Espelhar video (como um espelho)", "geral", "espelhar", 0)
-
-    for fr in (fr_poke, fr_mold, fr_pisca):
-        fr.columnconfigure(1, weight=1)
-    quadro.columnconfigure(0, weight=1)
-
-    def ciclo_status():
-        try:
-            while True:
-                var_status.set(status.get_nowait())
-        except queue.Empty:
-            pass
-        if pipeline[0] and not pipeline[0].is_alive() and var_botao.get().startswith("⏹"):
-            var_botao.set("▶  LIGAR CAMERA VIRTUAL")
-        raiz.after(200, ciclo_status)
-
-    def ao_fechar():
-        config.salvar()
-        if pipeline[0] and pipeline[0].is_alive():
-            pipeline[0].parar.set()
-            pipeline[0].join(timeout=3)
-        raiz.destroy()
-
-    raiz.protocol("WM_DELETE_WINDOW", ao_fechar)
-    ciclo_status()
-    raiz.mainloop()
+    # janela fechada: salva e encerra o pipeline
+    api.config.salvar()
+    if api.pipeline and api.pipeline.is_alive():
+        api.pipeline.parar.set()
+        api.pipeline.join(timeout=3)
 
 
 # =====================  MODO TESTE (sem interface)  =====================
@@ -762,7 +714,7 @@ def modo_teste(caminho_frame=None):
     caixa = None
     if resultado.face_landmarks:
         caixa = caixa_do_rosto(resultado.face_landmarks[0], frame.shape[1], frame.shape[0],
-                               moldura.pw / moldura.ph, 0.85)
+                               moldura.aspecto, 0.85)
     saida = moldura.compor(frame, caixa)
 
     pokemons = montar_time("pikachu 15\ncharmander 20", print)

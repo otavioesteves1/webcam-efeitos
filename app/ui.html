@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Webcam Efeitos</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, #1c2452 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #291b45 0%, transparent 55%),
+      #0c0f1d;
+    color: #e8eaf6;
+    padding: 22px 22px 16px;
+    overflow-x: hidden;
+  }
+
+  header { text-align: center; margin-bottom: 16px; }
+  header h1 {
+    font-size: 25px; font-weight: 700; letter-spacing: .5px;
+    background: linear-gradient(90deg, #ffd34d, #ff8a5c 40%, #a78bfa 75%, #22d3ee);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { color: #7c84ad; font-size: 12.5px; margin-top: 3px; }
+
+  /* ---------- botao principal ---------- */
+  .power {
+    width: 100%; padding: 15px; border: 0; border-radius: 14px;
+    font: 700 15.5px/1 "Segoe UI", sans-serif; letter-spacing: 1.2px;
+    color: #0c0f1d; cursor: pointer;
+    background: linear-gradient(135deg, #34d399, #22d3ee);
+    box-shadow: 0 6px 24px -6px rgba(34, 211, 238, .55);
+    transition: all .25s ease;
+  }
+  .power:hover { transform: translateY(-1px); filter: brightness(1.07); }
+  .power.on {
+    background: linear-gradient(135deg, #f87171, #fb923c);
+    box-shadow: 0 6px 24px -6px rgba(248, 113, 113, .55);
+    color: #fff;
+  }
+
+  .status {
+    display: flex; align-items: center; gap: 8px;
+    margin: 12px 2px 18px; font-size: 12.5px; color: #9aa3c7; min-height: 30px;
+  }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%; background: #4b5378; flex: none;
+    transition: all .3s;
+  }
+  .dot.on  { background: #34d399; box-shadow: 0 0 10px #34d399; }
+  .dot.erro { background: #f87171; box-shadow: 0 0 10px #f87171; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+    border: 1px solid rgba(255,255,255,.07);
+    border-left: 3px solid var(--cor);
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 12px;
+    box-shadow: 0 10px 30px -18px rgba(0,0,0,.9);
+  }
+  .card.poke  { --cor: #ffd34d; }
+  .card.mold  { --cor: #a78bfa; }
+  .card.pisca { --cor: #22d3ee; }
+
+  .card-head { display: flex; align-items: center; gap: 10px; }
+  .card-head .icone {
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; font-size: 17px;
+    background: color-mix(in srgb, var(--cor) 16%, transparent);
+  }
+  .card-head h2 { font-size: 14.5px; font-weight: 650; letter-spacing: .3px; }
+  .card-head small { display: block; color: #7c84ad; font-size: 11px; font-weight: 400; }
+  .card-head .espaco { flex: 1; }
+
+  .corpo { margin-top: 12px; transition: opacity .25s; }
+  .card.off .corpo { opacity: .35; pointer-events: none; }
+
+  /* ---------- switch ---------- */
+  .switch { position: relative; width: 44px; height: 24px; flex: none; cursor: pointer; }
+  .switch input { display: none; }
+  .switch span {
+    position: absolute; inset: 0; border-radius: 99px;
+    background: #2a3053; transition: background .25s;
+  }
+  .switch span::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%; background: #8f97bd;
+    transition: all .25s cubic-bezier(.6,-0.2,.3,1.4);
+  }
+  .switch input:checked + span { background: var(--cor, #34d399); }
+  .switch input:checked + span::after { left: 23px; background: #10132a; }
+
+  /* ---------- controles ---------- */
+  .linha { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .linha label { font-size: 12.5px; color: #b9c0e0; width: 118px; flex: none; }
+  .linha output { font-size: 11.5px; color: #7c84ad; width: 34px; text-align: right; }
+
+  textarea, select {
+    width: 100%; background: #12162c; color: #e8eaf6;
+    border: 1px solid rgba(255,255,255,.09); border-radius: 10px;
+    font: 13px/1.5 Consolas, monospace; padding: 9px 11px; outline: none;
+  }
+  textarea { resize: none; }
+  textarea:focus, select:focus { border-color: var(--cor); }
+  select { font-family: "Segoe UI", sans-serif; cursor: pointer; }
+
+  input[type=range] {
+    flex: 1; accent-color: var(--cor); height: 4px; cursor: pointer;
+  }
+
+  .check { display: flex; align-items: center; gap: 9px; margin-top: 10px;
+           font-size: 12.5px; color: #b9c0e0; cursor: pointer; }
+  .check input {
+    appearance: none; width: 17px; height: 17px; border-radius: 5px;
+    border: 1.5px solid #3d4570; background: #12162c; cursor: pointer;
+    display: grid; place-items: center; transition: all .15s;
+  }
+  .check input:checked { background: var(--cor, #34d399); border-color: var(--cor, #34d399); }
+  .check input:checked::after { content: "✓"; font-size: 11px; font-weight: 900; color: #10132a; }
+
+  .mini {
+    margin-top: 9px; padding: 8px 16px; border: 0; border-radius: 9px;
+    background: color-mix(in srgb, var(--cor) 22%, transparent);
+    color: var(--cor); font: 600 12.5px "Segoe UI", sans-serif; cursor: pointer;
+    transition: all .15s;
+  }
+  .mini:hover { background: color-mix(in srgb, var(--cor) 32%, transparent); }
+
+  .dica { font-size: 11px; color: #666e96; margin-top: 8px; }
+  .dica code { background: #12162c; padding: 1px 5px; border-radius: 4px; }
+
+  .geral { margin: 2px 4px 10px; --cor: #34d399; }
+
+  footer {
+    text-align: center; font-size: 11.5px; color: #666e96;
+    border-top: 1px solid rgba(255,255,255,.06); padding-top: 12px;
+  }
+  footer b { color: #9aa3c7; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎥 Webcam Efeitos</h1>
+  <p>pokémons, molduras e piscadas na sua câmera do Discord</p>
+</header>
+
+<button class="power" id="power">▶&nbsp;&nbsp;LIGAR CÂMERA VIRTUAL</button>
+<div class="status"><span class="dot" id="dot"></span><span id="status">Carregando...</span></div>
+
+<section class="card poke" id="card_poke">
+  <div class="card-head">
+    <span class="icone">🐛</span>
+    <h2>Poke-Cam<small>pokémons passeando na tela</small></h2>
+    <span class="espaco"></span>
+    <label class="switch"><input type="checkbox" id="poke_ativo"><span></span></label>
+  </div>
+  <div class="corpo">
+    <textarea id="poke_time" rows="4" spellcheck="false"></textarea>
+    <div style="display:flex; align-items:center; gap:10px">
+      <button class="mini" id="aplicar_time">Aplicar time</button>
+      <span class="dica">um por linha: <code>pikachu 30 shiny</code> (tamanho 1–100)</span>
+    </div>
+  </div>
+</section>
+
+<section class="card mold" id="card_mold">
+  <div class="card-head">
+    <span class="icone">🖼</span>
+    <h2>Moldura-Cam<small>sua cara no buraco da moldura</small></h2>
+    <span class="espaco"></span>
+    <label class="switch"><input type="checkbox" id="mold_ativo"><span></span></label>
+  </div>
+  <div class="corpo">
+    <div class="linha">
+      <label>Moldura</label>
+      <select id="mold_nome"></select>
+    </div>
+    <div class="linha">
+      <label>Zoom do rosto</label>
+      <input type="range" id="mold_zoom" min="0.6" max="1.5" step="0.05">
+      <output id="mold_zoom_val"></output>
+    </div>
+    <p class="dica">molduras próprias: crie uma pasta <code>molduras</code> ao lado do programa</p>
+  </div>
+</section>
+
+<section class="card pisca" id="card_pisca">
+  <div class="card-head">
+    <span class="icone">👁</span>
+    <h2>Pis-Cam<small>detector de piscada</small></h2>
+    <span class="espaco"></span>
+    <label class="switch"><input type="checkbox" id="pisca_ativo"><span></span></label>
+  </div>
+  <div class="corpo">
+    <div class="linha">
+      <label>Sensibilidade</label>
+      <input type="range" id="pisca_limiar" min="0.3" max="0.7" step="0.01">
+      <output id="pisca_limiar_val"></output>
+    </div>
+    <label class="check"><input type="checkbox" id="pisca_bip"> Tocar bip ao piscar (só você ouve)</label>
+    <label class="check"><input type="checkbox" id="pisca_contador"> Mostrar contador de piscadas</label>
+  </div>
+</section>
+
+<label class="check geral"><input type="checkbox" id="espelhar"> Espelhar vídeo (como um espelho)</label>
+
+<footer>No Discord: Configurações → Voz e vídeo → Câmera → <b>OBS Virtual Camera</b></footer>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const api = () => window.pywebview.api;
+
+  function refletirCartoes() {
+    $("card_poke").classList.toggle("off", !$("poke_ativo").checked);
+    $("card_mold").classList.toggle("off", !$("mold_ativo").checked);
+    $("card_pisca").classList.toggle("off", !$("pisca_ativo").checked);
+  }
+
+  function refletirPower(ligado) {
+    const b = $("power");
+    b.classList.toggle("on", ligado);
+    b.innerHTML = ligado ? "⏹&nbsp;&nbsp;DESLIGAR" : "▶&nbsp;&nbsp;LIGAR CÂMERA VIRTUAL";
+  }
+
+  async function iniciar() {
+    const e = await api().estado();
+    const c = e.config;
+
+    $("poke_ativo").checked = c.poke.ativo;
+    $("poke_time").value = c.poke.time;
+    $("mold_ativo").checked = c.moldura.ativo;
+    $("pisca_ativo").checked = c.pisca.ativo;
+    $("pisca_bip").checked = c.pisca.bip;
+    $("pisca_contador").checked = c.pisca.contador;
+    $("espelhar").checked = c.geral.espelhar;
+
+    const sel = $("mold_nome");
+    sel.innerHTML = "";
+    for (const nome of e.molduras) {
+      const o = document.createElement("option");
+      o.value = o.textContent = nome;
+      sel.appendChild(o);
+    }
+    sel.value = c.moldura.nome;
+    if (sel.selectedIndex < 0) sel.selectedIndex = 0;
+
+    $("mold_zoom").value = c.moldura.zoom;
+    $("mold_zoom_val").value = Number(c.moldura.zoom).toFixed(2);
+    $("pisca_limiar").value = c.pisca.limiar;
+    $("pisca_limiar_val").value = Number(c.pisca.limiar).toFixed(2);
+
+    refletirCartoes();
+    refletirPower(e.ligado);
+    $("status").textContent = e.status;
+
+    // ---- eventos ----
+    $("power").onclick = async () => refletirPower(await api().alternar());
+
+    const liga = (id, secao, chave) => {
+      $(id).onchange = () => { api().definir(secao, chave, $(id).checked); refletirCartoes(); };
+    };
+    liga("poke_ativo", "poke", "ativo");
+    liga("mold_ativo", "moldura", "ativo");
+    liga("pisca_ativo", "pisca", "ativo");
+    liga("pisca_bip", "pisca", "bip");
+    liga("pisca_contador", "pisca", "contador");
+    liga("espelhar", "geral", "espelhar");
+
+    $("aplicar_time").onclick = () => {
+      api().definir("poke", "time", $("poke_time").value);
+      $("aplicar_time").textContent = "Aplicado ✓";
+      setTimeout(() => $("aplicar_time").textContent = "Aplicar time", 1200);
+    };
+
+    $("mold_nome").onchange = () => api().definir("moldura", "nome", $("mold_nome").value);
+    $("mold_zoom").oninput = () => {
+      $("mold_zoom_val").value = Number($("mold_zoom").value).toFixed(2);
+      api().definir("moldura", "zoom", Number($("mold_zoom").value));
+    };
+    $("pisca_limiar").oninput = () => {
+      $("pisca_limiar_val").value = Number($("pisca_limiar").value).toFixed(2);
+      api().definir("pisca", "limiar", Number($("pisca_limiar").value));
+    };
+
+    // ---- ciclo de status ----
+    setInterval(async () => {
+      const s = await api().estado();
+      $("status").textContent = s.status;
+      refletirPower(s.ligado);
+      const dot = $("dot");
+      dot.className = "dot" + (s.status.startsWith("ERRO") ? " erro" : (s.ligado ? " on" : ""));
+    }, 600);
+  }
+
+  window.addEventListener("pywebviewready", iniciar);
+</script>
+</body>
+</html>
