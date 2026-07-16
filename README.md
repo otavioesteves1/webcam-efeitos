@@ -6,7 +6,29 @@ pra uma **câmera virtual** — aí é só escolher a "OBS Virtual Camera" no Di
 
 > *Fun virtual-camera effects in Python: blink detection with sound + Pokémon walking across your webcam feed (vscode-pokemon style). README in Brazilian Portuguese.*
 
-Tem dois programas aqui dentro:
+## ⬇️ Baixar o programa pronto (recomendado)
+
+Não precisa instalar Python nem saber programar:
+
+1. Instale o **[OBS Studio](https://obsproject.com/)** — só instalar, não precisa abrir
+   (o driver de câmera virtual que o Discord enxerga vem com ele)
+2. Baixe o **[WebcamEfeitos-windows.zip](https://github.com/otavioesteves1/webcam-efeitos/releases/latest/download/WebcamEfeitos-windows.zip)**
+3. Extraia o zip e abra o **`WebcamEfeitos.exe`**
+   (se o Windows mostrar o aviso azul "o Windows protegeu seu PC": clique em
+   *Mais informações* → *Executar assim mesmo* — o aviso aparece porque o programa
+   não tem assinatura digital paga, não porque tem algo de errado)
+4. Clique em **LIGAR CÂMERA VIRTUAL** e, no Discord:
+   Configurações → Voz e vídeo → Câmera → **"OBS Virtual Camera"**
+
+No painel dá pra ligar/desligar cada efeito na hora (pode combinar os três!) e
+mexer nas configurações: time de pokémons, moldura, zoom do rosto, sensibilidade
+da piscada, espelhar o vídeo. Pra usar suas próprias molduras, crie uma pasta
+`molduras` ao lado do `.exe` e jogue as imagens lá.
+
+---
+
+Pra quem quer mexer no código, os três efeitos também existem como scripts
+independentes:
 
 | Projeto | O que faz |
 |---|---|

@@ -6,3 +6,12 @@
 
 __pycache__/
 *.pyc
+
+# saidas de build e arquivos de execucao do app
+app/build/
+app/dist/
+app/*.spec
+app/config.json
+app/teste_app.png
+app/sprites/
+app/face_landmarker.task
