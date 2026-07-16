@@ -617,6 +617,56 @@ class Pipeline(threading.Thread):
 
 # =====================  INTERFACE  =====================
 
+# gen1 em ordem de pokedex (pra galeria ficar na ordem classica)
+ORDEM_DEX = [
+    "bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon", "charizard",
+    "squirtle", "wartortle", "blastoise", "caterpie", "metapod", "butterfree",
+    "weedle", "kakuna", "beedrill", "pidgey", "pidgeotto", "pidgeot", "rattata",
+    "raticate", "spearow", "fearow", "ekans", "arbok", "pikachu", "raichu",
+    "sandshrew", "sandslash", "nidoran_female", "nidorina", "nidoqueen",
+    "nidoran_male", "nidorino", "nidoking", "clefairy", "clefable", "vulpix",
+    "ninetales", "jigglypuff", "wigglytuff", "zubat", "golbat", "oddish", "gloom",
+    "vileplume", "paras", "parasect", "venonat", "venomoth", "diglett", "dugtrio",
+    "meowth", "persian", "psyduck", "golduck", "mankey", "primeape", "growlithe",
+    "arcanine", "poliwag", "poliwhirl", "poliwrath", "abra", "kadabra", "alakazam",
+    "machop", "machoke", "machamp", "bellsprout", "weepinbell", "victreebel",
+    "tentacool", "tentacruel", "geodude", "graveler", "golem", "ponyta", "rapidash",
+    "slowpoke", "slowbro", "magnemite", "magneton", "farfetchd", "doduo", "dodrio",
+    "seel", "dewgong", "grimer", "muk", "shellder", "cloyster", "gastly", "haunter",
+    "gengar", "onix", "drowzee", "hypno", "krabby", "kingler", "voltorb", "electrode",
+    "exeggcute", "exeggutor", "cubone", "marowak", "hitmonlee", "hitmonchan",
+    "lickitung", "koffing", "weezing", "rhyhorn", "rhydon", "chansey", "tangela",
+    "kangaskhan", "horsea", "seadra", "goldeen", "seaking", "staryu", "starmie",
+    "mrmime", "scyther", "jynx", "electabuzz", "magmar", "pinsir", "tauros",
+    "magikarp", "gyarados", "lapras", "ditto", "eevee", "vaporeon", "jolteon",
+    "flareon", "porygon", "omanyte", "omastar", "kabuto", "kabutops", "aerodactyl",
+    "snorlax", "articuno", "zapdos", "moltres", "dratini", "dragonair", "dragonite",
+    "mewtwo", "mew",
+]
+
+
+def catalogo_pokemons():
+    """Lista [{nome, gif base64}] com todos os pokemons que temos sprite idle,
+    em ordem de pokedex (gen1) e depois alfabetica (baixados de outras gens)."""
+    import base64
+    achados = {}
+    for pasta in (os.path.join(DADOS, "sprites"), pasta_sprites_pacote()):
+        if not os.path.isdir(pasta):
+            continue
+        for f in os.listdir(pasta):
+            if f.endswith("_default_idle.gif"):
+                achados.setdefault(f[:-len("_default_idle.gif")], os.path.join(pasta, f))
+    ordem = {n: i for i, n in enumerate(ORDEM_DEX)}
+    lista = []
+    for nome in sorted(achados, key=lambda n: (ordem.get(n, 9999), n)):
+        try:
+            with open(achados[nome], "rb") as fh:
+                b64 = base64.b64encode(fh.read()).decode()
+            lista.append({"nome": nome, "gif": "data:image/gif;base64," + b64})
+        except OSError:
+            continue
+    return lista
+
 def interface():
     import webview
 
@@ -655,12 +705,17 @@ def interface():
             self.config.definir(secao, chave, valor)
             self.config.salvar()
 
+        def lista_pokemons(self):
+            if not hasattr(self, "_catalogo"):
+                self._catalogo = catalogo_pokemons()
+            return self._catalogo
+
     api = Api()
     webview.create_window(
         "Webcam Efeitos",
         os.path.join(BASE, "ui.html"),
         js_api=api,
-        width=560, height=900, resizable=False,
+        width=560, height=940, resizable=False,
         background_color="#0c0f1d",
     )
     webview.start()

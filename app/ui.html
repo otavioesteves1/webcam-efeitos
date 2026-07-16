@@ -133,6 +133,67 @@
 
   .geral { margin: 2px 4px 10px; --cor: #34d399; }
 
+  /* ---------- time de pokemons ---------- */
+  .prow {
+    display: flex; align-items: center; gap: 8px;
+    background: #12162c; border: 1px solid rgba(255,255,255,.06);
+    border-radius: 10px; padding: 4px 10px; margin-top: 6px;
+  }
+  .prow img { width: 34px; height: 34px; image-rendering: pixelated; flex: none; }
+  .prow .pnome { width: 92px; flex: none; font-size: 12px; color: #d5daf3;
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow .shiny { border: 0; background: none; cursor: pointer; font-size: 14px;
+                 opacity: .25; padding: 2px; transition: all .15s; flex: none; }
+  .prow .shiny.on { opacity: 1; filter: drop-shadow(0 0 4px #ffd34d); }
+  .prow input[type=range] { flex: 1; min-width: 40px; }
+  .prow output { width: 26px; text-align: right; font-size: 11px; color: #7c84ad; flex: none; }
+  .prow .tirar { border: 0; background: none; color: #6a7195; cursor: pointer;
+                 font-size: 15px; padding: 2px 4px; flex: none; }
+  .prow .tirar:hover { color: #f87171; }
+  .time-vazio { color: #666e96; font-size: 12px; margin-top: 8px; }
+
+  /* ---------- galeria ---------- */
+  .galeria[hidden] { display: none; }
+  .galeria {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(6, 8, 18, .78); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .galeria-box {
+    width: 100%; max-width: 480px; height: 82vh; display: flex; flex-direction: column;
+    background: #141830; border: 1px solid rgba(255,255,255,.1);
+    border-radius: 18px; padding: 14px; box-shadow: 0 30px 80px -20px #000;
+  }
+  .galeria-head { display: flex; gap: 8px; margin-bottom: 12px; }
+  .galeria-head input {
+    flex: 1; background: #0d1023; color: #e8eaf6; border: 1px solid rgba(255,255,255,.1);
+    border-radius: 9px; padding: 9px 12px; font: 12.5px "Segoe UI"; outline: none;
+  }
+  .galeria-head input:focus { border-color: #ffd34d; }
+  .galeria-head button {
+    border: 0; border-radius: 9px; width: 38px; background: #22284a;
+    color: #9aa3c7; font-size: 15px; cursor: pointer;
+  }
+  .grade-poke {
+    flex: 1; overflow-y: auto; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 6px;
+    align-content: start; padding-right: 4px;
+  }
+  .pcel {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: #0d1023; border: 1px solid transparent; border-radius: 10px;
+    padding: 8px 2px 6px; cursor: pointer; transition: all .12s;
+  }
+  .pcel:hover { border-color: #ffd34d; transform: translateY(-2px); }
+  .pcel.add { border-color: #34d399; }
+  .pcel img { width: 44px; height: 44px; image-rendering: pixelated; }
+  .pcel span { font-size: 9.5px; color: #9aa3c7; max-width: 100%;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-thumb { background: #2a3053; border-radius: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
   footer {
     text-align: center; font-size: 11.5px; color: #666e96;
     border-top: 1px solid rgba(255,255,255,.06); padding-top: 12px;
@@ -158,13 +219,24 @@
     <label class="switch"><input type="checkbox" id="poke_ativo"><span></span></label>
   </div>
   <div class="corpo">
-    <textarea id="poke_time" rows="4" spellcheck="false"></textarea>
-    <div style="display:flex; align-items:center; gap:10px">
-      <button class="mini" id="aplicar_time">Aplicar time</button>
-      <span class="dica">um por linha: <code>pikachu 30 shiny</code> (tamanho 1–100)</span>
+    <div id="time_lista"></div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:9px">
+      <button class="mini" id="abrir_galeria">➕ Escolher pokémons</button>
+      <span class="dica">barrinha = tamanho · ✨ = shiny · pode repetir</span>
     </div>
   </div>
 </section>
+
+<!-- galeria de pokemons (abre por cima de tudo) -->
+<div id="galeria" class="galeria" hidden>
+  <div class="galeria-box">
+    <div class="galeria-head">
+      <input id="busca_poke" placeholder="buscar... (nome de outra geração + Enter também vale)" spellcheck="false">
+      <button id="fechar_galeria">✕</button>
+    </div>
+    <div id="grade_poke" class="grade-poke"></div>
+  </div>
+</div>
 
 <section class="card mold" id="card_mold">
   <div class="card-head">
@@ -230,7 +302,6 @@
     const c = e.config;
 
     $("poke_ativo").checked = c.poke.ativo;
-    $("poke_time").value = c.poke.time;
     $("mold_ativo").checked = c.moldura.ativo;
     $("pisca_ativo").checked = c.pisca.ativo;
     $("pisca_bip").checked = c.pisca.bip;
@@ -269,10 +340,92 @@
     liga("pisca_contador", "pisca", "contador");
     liga("espelhar", "geral", "espelhar");
 
-    $("aplicar_time").onclick = () => {
-      api().definir("poke", "time", $("poke_time").value);
-      $("aplicar_time").textContent = "Aplicado ✓";
-      setTimeout(() => $("aplicar_time").textContent = "Aplicar time", 1200);
+    // ---- time de pokemons (lista visual) ----
+    let catalogo = [];
+    try { catalogo = await api().lista_pokemons(); } catch (e) {}
+    const gifPor = {};
+    for (const p of catalogo) gifPor[p.nome] = p.gif;
+
+    let time = [];
+    for (const linha of (c.poke.time || "").split(/\n/)) {
+      const t = linha.trim().toLowerCase();
+      if (!t || t.startsWith("#")) continue;
+      const partes = t.split(/\s+/);
+      const item = { nome: partes[0], tamanho: 15, shiny: false };
+      for (const x of partes.slice(1)) {
+        if (x === "shiny") item.shiny = true;
+        else if (/^\d+$/.test(x)) item.tamanho = Math.max(1, Math.min(100, +x));
+      }
+      time.push(item);
+    }
+
+    function salvarTime() {
+      const texto = time.map(p => p.nome + " " + p.tamanho + (p.shiny ? " shiny" : "")).join("\n");
+      api().definir("poke", "time", texto);
+    }
+
+    function renderTime() {
+      const cont = $("time_lista");
+      cont.innerHTML = "";
+      if (!time.length) {
+        cont.innerHTML = '<div class="time-vazio">nenhum pokémon no time — clique em "Escolher pokémons"</div>';
+        return;
+      }
+      time.forEach((p, i) => {
+        const row = document.createElement("div");
+        row.className = "prow";
+        row.innerHTML =
+          `<img src="${gifPor[p.nome] || ""}" onerror="this.style.visibility='hidden'">` +
+          `<span class="pnome">${p.nome}</span>` +
+          `<button class="shiny${p.shiny ? " on" : ""}" title="versão shiny">✨</button>` +
+          `<input type="range" min="1" max="100" step="1" value="${p.tamanho}" title="tamanho na tela">` +
+          `<output>${p.tamanho}</output>` +
+          `<button class="tirar" title="remover">✕</button>`;
+        row.querySelector(".shiny").onclick = () => { p.shiny = !p.shiny; renderTime(); salvarTime(); };
+        const faixa = row.querySelector("input");
+        faixa.oninput = () => { p.tamanho = +faixa.value; row.querySelector("output").textContent = faixa.value; salvarTime(); };
+        row.querySelector(".tirar").onclick = () => { time.splice(i, 1); renderTime(); salvarTime(); };
+        cont.appendChild(row);
+      });
+    }
+    renderTime();
+
+    // ---- galeria ----
+    function renderGaleria(filtro) {
+      const grade = $("grade_poke");
+      grade.innerHTML = "";
+      for (const p of catalogo) {
+        if (filtro && !p.nome.includes(filtro)) continue;
+        const cel = document.createElement("div");
+        cel.className = "pcel";
+        cel.innerHTML = `<img src="${p.gif}" loading="lazy"><span>${p.nome}</span>`;
+        cel.onclick = () => {
+          time.push({ nome: p.nome, tamanho: 15, shiny: false });
+          renderTime(); salvarTime();
+          cel.classList.add("add");
+          setTimeout(() => cel.classList.remove("add"), 350);
+        };
+        grade.appendChild(cel);
+      }
+    }
+    $("abrir_galeria").onclick = () => {
+      $("galeria").hidden = false;
+      renderGaleria("");
+      $("busca_poke").value = "";
+      $("busca_poke").focus();
+    };
+    $("fechar_galeria").onclick = () => { $("galeria").hidden = true; };
+    $("galeria").onclick = e => { if (e.target === $("galeria")) $("galeria").hidden = true; };
+    $("busca_poke").oninput = () => renderGaleria($("busca_poke").value.trim().toLowerCase());
+    $("busca_poke").onkeydown = e => {
+      if (e.key === "Enter") {
+        const nome = $("busca_poke").value.trim().toLowerCase().replace(/\s+/g, "");
+        if (nome) {
+          time.push({ nome, tamanho: 15, shiny: false });
+          renderTime(); salvarTime();
+          $("galeria").hidden = true;
+        }
+      }
     };
 
     $("mold_nome").onchange = () => api().definir("moldura", "nome", $("mold_nome").value);
